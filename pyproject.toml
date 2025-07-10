@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dynamodb-not-orm"
+version = "0.1.0"
+description = "A lightweight DynamoDB ORM alternative"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Timophey Akulich", email = "tima.akulich@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "aiodynamo",
+    "typer",
+    "httpx",
+    "asyncer",
+    "pydantic",
+]
+
+[project.scripts]
+not-orm = "dynamodb_not_orm.not_orm_cli:app"
+
+[project.urls]
+Homepage = "https://github.com/timaakulich/dynamodb-not-orm"
+Repository = "https://github.com/timaakulich/dynamodb-not-orm"
+Issues = "https://github.com/timaakulich/dynamodb-not-orm/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dynamodb_not_orm*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.py"] 
