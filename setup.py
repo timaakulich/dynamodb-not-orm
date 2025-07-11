@@ -11,6 +11,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
         if line.strip() and not line.startswith("#")
     ]
 
+
 setup(
     name="dynamodb-not-orm",
     version=__version__,
