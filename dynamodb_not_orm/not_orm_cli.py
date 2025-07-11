@@ -96,19 +96,25 @@ async def create_empty(description: str = typer.Argument("auto")):
 Migration {number_str}: {description}
 \"\"\"
 from aiodynamo.client import Client
+from aiodynamo.models import (
+    KeySchema,
+    KeySpec,
+    KeyType,
+    Throughput,
+    PayPerRequest
+)
 
 
 migration_id = '{migration_id}'
 description = '{description}'
 
 
-async def upgrade(client: Client):
+async def upgrade(client: Client, environment: str, app_name: str):
     pass
 
 
-async def downgrade(client: Client):
+async def downgrade(client: Client, environment: str, app_name: str):
     pass
-
 """
 
     filepath.write_text(template, encoding="utf-8")
@@ -270,7 +276,7 @@ async def migrate(
 
         try:
             if action == "upgrade":
-                await migration_module.upgrade(client)
+                await migration_module.upgrade(client, environment, app_name)
                 await client.put_item(
                     table_name,
                     {
@@ -283,7 +289,7 @@ async def migrate(
                     fg=typer.colors.GREEN,
                 )
             else:
-                await migration_module.downgrade(client)
+                await migration_module.downgrade(client, environment, app_name)
                 await client.delete_item(
                     table_name,
                     {
