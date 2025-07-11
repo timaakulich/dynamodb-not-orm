@@ -21,11 +21,10 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "aiodynamo",
-    "typer",
-    "httpx",
-    "asyncer",
-    "pydantic",
+    "aiodynamo[httpx]==24.7",
+    "typer==0.16.0",
+    "asyncer==0.0.8",
+    "pydantic==2.11.7",
 ]
 
 [project.scripts]

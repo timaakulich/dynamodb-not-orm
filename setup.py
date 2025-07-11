@@ -1,5 +1,17 @@
 from setuptools import setup, find_packages
-from dynamodb_not_orm import __version__
+import re
+
+
+def get_version():
+    with open("dynamodb_not_orm/__init__.py", "r", encoding="utf-8") as fh:
+        content = fh.read()
+        match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
+        if match:
+            return match.group(1)
+        raise RuntimeError(
+            "Could not find __version__ in dynamodb_not_orm/__init__.py"
+        )
+
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -14,7 +26,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="dynamodb-not-orm",
-    version=__version__,
+    version=get_version(),
     author="Timophey Akulich",
     author_email="tima.akulich@gmail.com",
     description="A lightweight DynamoDB ORM alternative",
