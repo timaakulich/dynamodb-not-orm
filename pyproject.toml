@@ -42,3 +42,9 @@ include = ["dynamodb_not_orm*"]
 
 [tool.setuptools.package-data]
 "*" = ["*.py"] 
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.lint]
+select = ["E"]

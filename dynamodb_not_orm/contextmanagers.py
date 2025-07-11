@@ -3,10 +3,13 @@ from typing import AsyncIterator
 
 import httpx
 from aiodynamo.client import Client, Table
-from aiodynamo.credentials import (ChainCredentials,
-                                   ContainerMetadataCredentials,
-                                   EnvironmentCredentials, FileCredentials,
-                                   InstanceMetadataCredentialsV1)
+from aiodynamo.credentials import (
+    ChainCredentials,
+    ContainerMetadataCredentials,
+    EnvironmentCredentials,
+    FileCredentials,
+    InstanceMetadataCredentialsV1,
+)
 from aiodynamo.http.httpx import HTTPX
 
 credentials = ChainCredentials(
@@ -22,10 +25,7 @@ httpx_client = httpx.AsyncClient()
 
 
 @asynccontextmanager
-async def dynamodb(
-        table: str,
-        region: str
-) -> AsyncIterator[Table]:
+async def dynamodb(table: str, region: str) -> AsyncIterator[Table]:
     client = Client(
         HTTPX(httpx_client),
         credentials,

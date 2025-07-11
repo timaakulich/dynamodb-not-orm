@@ -1,5 +1,3 @@
-from aiodynamo.models import ReturnValues
-
 # DynamoDB Not ORM
 
 A lightweight DynamoDB ORM alternative that provides a simple way to work with DynamoDB without the complexity of a full ORM.
@@ -55,7 +53,11 @@ key = UserDataModel.key("123", "user@example.com")  # {'user_id': '123', 'email'
 # create CRUD model
 from dynamodb_not_orm import BaseCRUD
 
-user_crud = BaseCRUD(UserDataModel, 'eu-east-1', 'dev')
+
+class UserCRUD(BaseCRUD[UserDataModel]):
+    ...
+
+user_crud = UserCRUD('eu-east-1', 'dev')
 user = await user_crud.update(user.key, user.to_update_expression(), return_values=ReturnValues.all_new)
 await user_crud.update(user.key, F(UserDataModel.profile.full_name).set("John Doe"))
 await user_crud.update(

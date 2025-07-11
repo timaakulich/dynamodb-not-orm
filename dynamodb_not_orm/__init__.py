@@ -6,5 +6,5 @@ from .data import DataModel, F
 from .crud import BaseCRUD
 from .contextmanagers import dynamodb
 
-__version__ = '0.1.0'
-__all__ = ['DataModel', 'F', 'BaseCRUD', 'dynamodb']
+__version__ = "0.1.0"
+__all__ = ["DataModel", "F", "BaseCRUD", "dynamodb"]

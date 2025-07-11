@@ -13,12 +13,7 @@ class UpdateExpression(BaseUpdateExpression):
         return any((self.set_updates, self.remove, self.add, self.delete))
 
 
-def and_(*args):
-    return reduce(_and_, args)
-
-
 class F(AioF):
-
     def __init__(self, root: str | Self | Any, *path: Union[str, int]):
         if isinstance(root, F):
             self.path = root.path
@@ -33,12 +28,12 @@ class F(AioF):
 
     def set(self, value: Any) -> UpdateExpression:
         if isinstance(value, DataModel):
-            value = value.model_dump()
+            value = value.model_dump(exclude_key=True)
         return super().set(value)
 
     def set_if_not_exists(self, value: Any) -> UpdateExpression:
         if isinstance(value, DataModel):
-            value = value.model_dump()
+            value = value.model_dump(exclude_key=True)
         return super().set_if_not_exists(value)
 
     @staticmethod
@@ -57,13 +52,22 @@ class DataModelMeta(type):
 
 
 class KeyDescriptor:
-    def __get__(self, obj, objtype=None) -> Callable[[str, str | None], dict[str, str | float | bytes]] | dict[str, str | float | bytes]:
+    def __get__(
+        self, obj, objtype=None
+    ) -> (
+        Callable[[str, str | None], dict[str, str | float | bytes]]
+        | dict[str, str | float | bytes]
+    ):
         if obj is None:
-            def create_key(pk: str, sk: str | None = None) -> dict[str, str | float | bytes]:
+
+            def create_key(
+                pk: str, sk: str | None = None
+            ) -> dict[str, str | float | bytes]:
                 _key = {objtype.__pk__: pk}
                 if sk and objtype.__sk__:
                     _key[objtype.__sk__] = sk
                 return _key
+
             return create_key
         else:
             _key = {
@@ -87,24 +91,28 @@ class DataModel(metaclass=DataModelMeta):
         return _keys
 
     @classmethod
-    def model_validate(cls, obj: Any) -> Type[Self]:
+    def model_validate(cls, obj: Any) -> Type["Self"]:
         return TypeAdapter(cls).validate_python(obj)
 
-    def model_dump(self, exclude: set[str] | None = None) -> dict:
+    def model_dump(
+        self, exclude: set[str] | None = None, exclude_key: bool = False
+    ) -> dict:
         result = asdict(self)
-        for exclude in exclude or set():
-            result.pop(exclude, None)
+        exclude = exclude or set()
+        if exclude_key:
+            exclude.update(self._get_exclude_keys())
+        for field in exclude:
+            result.pop(field, None)
         return result
 
-    def to_update_expression(
-            self,
-            data: dict | None = None,
-            overrides: Optional[dict[str, UpdateExpression]] = None,
-            prefix: str = None
-    ) -> UpdateExpression:
-        data = data or self.model_dump(exclude=self._get_exclude_keys())
-        result: dict[str, UpdateExpression] = {}
-        for key, value in data.items():
-            result[key] = (F(prefix, key) if prefix else F(key)).set(value)
-        result.update(overrides or {})
-        return and_(*result.values()) if result else UpdateExpression()
+
+def to_update_expression(
+    data: dict,
+    overrides: Optional[dict[str, UpdateExpression]] = None,
+    prefix: str = None,
+) -> UpdateExpression:
+    result: dict[str, UpdateExpression] = {}
+    for key, value in data.items():
+        result[key] = (F(prefix, key) if prefix else F(key)).set(value)
+    result.update(overrides or {})
+    return F.and_(*result.values()) if result else UpdateExpression()
