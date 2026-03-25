@@ -32,3 +32,13 @@ async def dynamodb(table: str, region: str) -> AsyncIterator[Table]:
         region,
     )
     yield client.table(table)
+
+
+@asynccontextmanager
+async def dynamodb_client(region: str) -> AsyncIterator[Client]:
+    client = Client(
+        HTTPX(httpx_client),
+        credentials,
+        region,
+    )
+    yield client

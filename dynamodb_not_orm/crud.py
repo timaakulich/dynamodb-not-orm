@@ -1,17 +1,17 @@
 import time
 from contextlib import suppress
-from typing import Type, Generic, Optional, List, TypeVar, Any, get_args
+from typing import Any, Generic, List, Optional, Type, TypeVar, get_args
 
 from aiodynamo.errors import ItemNotFound
 from aiodynamo.expressions import (
+    Condition,
+    KeyCondition,
     ProjectionExpression,
     UpdateExpression,
-    KeyCondition,
-    Condition,
 )
-from aiodynamo.models import ReturnValues, Select
+from aiodynamo.models import BatchGetRequest, ReturnValues, Select
 
-from .contextmanagers import dynamodb
+from .contextmanagers import dynamodb, dynamodb_client
 
 __all__ = ("BaseCRUD",)
 
@@ -125,6 +125,37 @@ class BaseCRUD(Generic[T]):
                 result.append(self.model_cls.model_validate(item))
             return result
 
+    async def page(
+            self,
+            key_condition_expression: KeyCondition,
+            start_key: Optional[dict[str, Any]] = None,
+            filter_expression: Optional[Condition] = None,
+            scan_forward: bool = True,
+            index: Optional[str] = None,
+            limit: Optional[int] = None,
+            projection: Optional[ProjectionExpression] = None,
+            select: Select = Select.all_attributes,
+            consistent_read: bool = False,
+    ) -> tuple[dict | None, List[T]]:
+        async with dynamodb(
+            self.full_table_name(self.table_name), self.region_name
+        ) as table:
+            result = await table.query_single_page(
+                key_condition_expression,
+                start_key=start_key,
+                filter_expression=filter_expression,
+                scan_forward=scan_forward,
+                index=index,
+                limit=limit,
+                projection=projection,
+                select=select,
+                consistent_read=consistent_read,
+            )
+            return result.last_evaluated_key, [
+                self.model_cls.model_validate(item)
+                for item in result.items
+            ]
+
     async def create(
         self,
         obj: T,
@@ -133,7 +164,11 @@ class BaseCRUD(Generic[T]):
     ) -> Optional[T]:
         return await self.update(
             obj.key,
-            to_update_expression(obj.model_dump(exclude_key=True)),
+            to_update_expression(
+                obj.model_dump(
+                    exclude_key=True, exclude={"updated_at", "created_at"}
+                )
+            ),
             return_values=return_values,
             condition=condition,
         )
@@ -203,3 +238,23 @@ class BaseCRUD(Generic[T]):
             ):
                 result.append(self.model_cls.model_validate(item))
             return result
+
+    async def batch_get(
+            self,
+            keys: List[dict[str, Any]],
+            projection: Optional[ProjectionExpression] = None,
+            consistent_read: bool = False,
+    ) -> List[T]:
+        async with dynamodb_client(self.region_name) as client:
+            table_name = self.full_table_name(self.table_name)
+            result = await client.batch_get(request={
+                table_name: BatchGetRequest(
+                    keys=keys,
+                    projection=projection,
+                    consistent_read=consistent_read,
+                )
+            })
+            return [
+                self.model_cls.model_validate(item)
+                for item in result.items[table_name]
+            ]

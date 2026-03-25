@@ -1,11 +1,13 @@
 from dataclasses import asdict
 from functools import reduce
-from typing import Union, Self, Any, Type, ClassVar, Optional, Callable
-
-from aiodynamo.expressions import F as AioF, KeyPath
-from pydantic import TypeAdapter
 from operator import and_ as _and_
+from operator import or_ as _or_
+from typing import Any, Callable, ClassVar, Optional, Self, Type, Union
+
+from aiodynamo.expressions import Condition, KeyPath, ProjectionExpression
+from aiodynamo.expressions import F as AioF
 from aiodynamo.expressions import UpdateExpression as BaseUpdateExpression
+from pydantic import TypeAdapter
 
 
 class UpdateExpression(BaseUpdateExpression):
@@ -37,8 +39,12 @@ class F(AioF):
         return super().set_if_not_exists(value)
 
     @staticmethod
-    def and_(*args: UpdateExpression) -> UpdateExpression:
+    def and_(*args: ProjectionExpression | UpdateExpression | Condition) -> ProjectionExpression | UpdateExpression | Condition:
         return reduce(_and_, args)
+
+    @staticmethod
+    def or_(*args: ProjectionExpression | UpdateExpression | Condition) -> ProjectionExpression | UpdateExpression | Condition:
+        return reduce(_or_, args)
 
 
 class DataModelMeta(type):
@@ -109,7 +115,7 @@ class DataModel(metaclass=DataModelMeta):
 def to_update_expression(
     data: dict,
     overrides: Optional[dict[str, UpdateExpression]] = None,
-    prefix: str = None,
+    prefix: str | None = None,
 ) -> UpdateExpression:
     result: dict[str, UpdateExpression] = {}
     for key, value in data.items():

@@ -1,15 +1,22 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "dynamodb-not-orm"
 version = "0.1.0"
 description = "A lightweight DynamoDB ORM alternative"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+requires-python = ">=3.8"
 authors = [
-    {name = "Timophey Akulich", email = "tima.akulich@gmail.com"}
+    { name = "Timophey Akulich", email = "tima.akulich@gmail.com" },
+]
+keywords = [
+    "dynamodb",
+    "aws",
+    "orm",
+    "nosql",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -17,14 +24,23 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-requires-python = ">=3.8"
 dependencies = [
     "aiodynamo[httpx]==24.7",
     "typer==0.16.0",
     "asyncer==0.0.8",
     "pydantic==2.11.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
 ]
 
 [project.scripts]
@@ -35,15 +51,38 @@ Homepage = "https://github.com/timaakulich/dynamodb-not-orm"
 Repository = "https://github.com/timaakulich/dynamodb-not-orm"
 Issues = "https://github.com/timaakulich/dynamodb-not-orm/issues"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["dynamodb_not_orm*"]
+[tool.hatch.build.targets.wheel]
+packages = ["dynamodb_not_orm"]
 
-[tool.setuptools.package-data]
-"*" = ["*.py"] 
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "tests/",
+    ".github/",
+]
 
 [tool.ruff]
 line-length = 79
 
 [tool.ruff.lint]
-select = ["E"]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "C4",
+    "RUF",
+]
+ignore = [
+    "E501",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["dynamodb_not_orm"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+addopts = "-v --tb=short"

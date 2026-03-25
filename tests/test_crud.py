@@ -1,4 +1,4 @@
-from dynamodb_not_orm import DataModel, BaseCRUD
+from dynamodb_not_orm import BaseCRUD, DataModel
 
 
 def test_crud():
