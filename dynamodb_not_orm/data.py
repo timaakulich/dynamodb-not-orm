@@ -1,8 +1,9 @@
+from collections.abc import Callable
 from dataclasses import asdict
 from functools import reduce
 from operator import and_ as _and_
 from operator import or_ as _or_
-from typing import Any, Callable, ClassVar, Optional, Self, Type, Union
+from typing import Any, ClassVar, Self
 
 from aiodynamo.expressions import Condition, KeyPath, ProjectionExpression
 from aiodynamo.expressions import F as AioF
@@ -16,7 +17,7 @@ class UpdateExpression(BaseUpdateExpression):
 
 
 class F(AioF):
-    def __init__(self, root: str | Self | Any, *path: Union[str, int]):
+    def __init__(self, root: str | Self | Any, *path: str | int):
         if isinstance(root, F):
             self.path = root.path
         else:
@@ -87,7 +88,7 @@ class KeyDescriptor:
 class DataModel(metaclass=DataModelMeta):
     __table__: ClassVar[str]
     __pk__: ClassVar[str]
-    __sk__: ClassVar[Optional[str]] = None
+    __sk__: ClassVar[str | None] = None
     key = KeyDescriptor()
 
     def _get_exclude_keys(self) -> set[str]:
@@ -97,7 +98,7 @@ class DataModel(metaclass=DataModelMeta):
         return _keys
 
     @classmethod
-    def model_validate(cls, obj: Any) -> Type["Self"]:
+    def model_validate(cls, obj: Any) -> type["Self"]:
         return TypeAdapter(cls).validate_python(obj)
 
     def model_dump(
@@ -114,7 +115,7 @@ class DataModel(metaclass=DataModelMeta):
 
 def to_update_expression(
     data: dict,
-    overrides: Optional[dict[str, UpdateExpression]] = None,
+    overrides: dict[str, UpdateExpression] | None = None,
     prefix: str | None = None,
 ) -> UpdateExpression:
     result: dict[str, UpdateExpression] = {}

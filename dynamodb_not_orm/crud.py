@@ -1,6 +1,6 @@
 import time
 from contextlib import suppress
-from typing import Any, Generic, List, Optional, Type, TypeVar, get_args
+from typing import Any, TypeVar, get_args
 
 from aiodynamo.errors import ItemNotFound
 from aiodynamo.expressions import (
@@ -15,13 +15,15 @@ from .contextmanagers import dynamodb, dynamodb_client
 
 __all__ = ("BaseCRUD",)
 
+import builtins
+
 from .data import DataModel, F, to_update_expression
 
 T = TypeVar("T", bound=DataModel)
 
 
-class BaseCRUD(Generic[T]):
-    model_cls: Type[T] = None
+class BaseCRUD[T: DataModel]:
+    model_cls: type[T] = None
 
     def __init_subclass__(cls):
         super().__init_subclass__()
@@ -50,7 +52,7 @@ class BaseCRUD(Generic[T]):
         projection: ProjectionExpression | None = None,
         consistent_read: bool = False,
         raise_exc: bool = False,
-    ) -> Optional[T]:
+    ) -> T | None:
         async with dynamodb(
             self.full_table_name(self.table_name), self.region_name
         ) as table:
@@ -67,15 +69,15 @@ class BaseCRUD(Generic[T]):
     async def query(
         self,
         key_condition_expression: KeyCondition,
-        start_key: Optional[dict[str, Any]] = None,
-        filter_expression: Optional[Condition] = None,
+        start_key: dict[str, Any] | None = None,
+        filter_expression: Condition | None = None,
         scan_forward: bool = True,
-        index: Optional[str] = None,
-        limit: Optional[int] = None,
-        projection: Optional[ProjectionExpression] = None,
+        index: str | None = None,
+        limit: int | None = None,
+        projection: ProjectionExpression | None = None,
         select: Select = Select.all_attributes,
         consistent_read: bool = False,
-    ) -> List[T]:
+    ) -> list[T]:
         async with dynamodb(
             self.full_table_name(self.table_name), self.region_name
         ) as table:
@@ -98,15 +100,15 @@ class BaseCRUD(Generic[T]):
     async def list(
         self,
         key_condition_expression: KeyCondition,
-        start_key: Optional[dict[str, Any]] = None,
-        filter_expression: Optional[Condition] = None,
+        start_key: dict[str, Any] | None = None,
+        filter_expression: Condition | None = None,
         scan_forward: bool = True,
-        index: Optional[str] = None,
-        limit: Optional[int] = None,
-        projection: Optional[ProjectionExpression] = None,
+        index: str | None = None,
+        limit: int | None = None,
+        projection: ProjectionExpression | None = None,
         select: Select = Select.all_attributes,
         consistent_read: bool = False,
-    ) -> List[T]:
+    ) -> list[T]:
         async with dynamodb(
             self.full_table_name(self.table_name), self.region_name
         ) as table:
@@ -128,15 +130,15 @@ class BaseCRUD(Generic[T]):
     async def page(
             self,
             key_condition_expression: KeyCondition,
-            start_key: Optional[dict[str, Any]] = None,
-            filter_expression: Optional[Condition] = None,
+            start_key: dict[str, Any] | None = None,
+            filter_expression: Condition | None = None,
             scan_forward: bool = True,
-            index: Optional[str] = None,
-            limit: Optional[int] = None,
-            projection: Optional[ProjectionExpression] = None,
+            index: str | None = None,
+            limit: int | None = None,
+            projection: ProjectionExpression | None = None,
             select: Select = Select.all_attributes,
             consistent_read: bool = False,
-    ) -> tuple[dict | None, List[T]]:
+    ) -> tuple[dict | None, builtins.list[T]]:
         async with dynamodb(
             self.full_table_name(self.table_name), self.region_name
         ) as table:
@@ -160,8 +162,8 @@ class BaseCRUD(Generic[T]):
         self,
         obj: T,
         return_values: ReturnValues = ReturnValues.none,
-        condition: Optional[Condition] = None,
-    ) -> Optional[T]:
+        condition: Condition | None = None,
+    ) -> T | None:
         return await self.update(
             obj.key,
             to_update_expression(
@@ -178,8 +180,8 @@ class BaseCRUD(Generic[T]):
         key: dict,
         update_expression: UpdateExpression,
         return_values: ReturnValues = ReturnValues.none,
-        condition: Optional[Condition] = None,
-    ) -> Optional[T]:
+        condition: Condition | None = None,
+    ) -> T | None:
         async with dynamodb(
             self.full_table_name(self.table_name), self.region_name
         ) as table:
@@ -202,8 +204,8 @@ class BaseCRUD(Generic[T]):
         self,
         key: dict,
         return_values: ReturnValues = ReturnValues.none,
-        condition: Optional[Condition] = None,
-    ) -> Optional[T]:
+        condition: Condition | None = None,
+    ) -> T | None:
         async with dynamodb(
             self.full_table_name(self.table_name), self.region_name
         ) as table:
@@ -217,13 +219,13 @@ class BaseCRUD(Generic[T]):
 
     async def scan(
         self,
-        index: Optional[str] = None,
-        limit: Optional[int] = None,
-        start_key: Optional[dict[str, Any]] = None,
-        projection: Optional[ProjectionExpression] = None,
-        filter_expression: Optional[Condition] = None,
+        index: str | None = None,
+        limit: int | None = None,
+        start_key: dict[str, Any] | None = None,
+        projection: ProjectionExpression | None = None,
+        filter_expression: Condition | None = None,
         consistent_read: bool = False,
-    ) -> List[T]:
+    ) -> builtins.list[T]:
         async with dynamodb(
             self.full_table_name(self.table_name), self.region_name
         ) as table:
@@ -241,10 +243,10 @@ class BaseCRUD(Generic[T]):
 
     async def batch_get(
             self,
-            keys: List[dict[str, Any]],
-            projection: Optional[ProjectionExpression] = None,
+            keys: builtins.list[dict[str, Any]],
+            projection: ProjectionExpression | None = None,
             consistent_read: bool = False,
-    ) -> List[T]:
+    ) -> builtins.list[T]:
         async with dynamodb_client(self.region_name) as client:
             table_name = self.full_table_name(self.table_name)
             result = await client.batch_get(request={

@@ -1,4 +1,3 @@
-from typing import Optional
 
 import httpx
 import typer
@@ -62,7 +61,7 @@ async def create_empty(description: str = typer.Argument("auto")):
 @app.command()
 @runnify
 async def migrate(
-    migration_number: Optional[str] = typer.Argument(
+    migration_number: str | None = typer.Argument(
         None,
         help="Migration number (e.g., 0001, 0002) or zero to unapply all",
     ),
