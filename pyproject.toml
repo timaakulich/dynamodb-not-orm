@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dynamodb-not-orm"
-version = "0.1.1"
+version = "0.1.2"
 description = "A lightweight DynamoDB ORM alternative"
 readme = "README.md"
 license = "MIT"
@@ -28,9 +28,9 @@ classifiers = [
 ]
 dependencies = [
     "aiodynamo[httpx]==24.7",
-    "typer==0.16.0",
-    "asyncer==0.0.8",
-    "pydantic==2.11.7",
+    "typer",
+    "asyncer",
+    "pydantic",
 ]
 
 [project.optional-dependencies]
