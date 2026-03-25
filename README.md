@@ -1,5 +1,10 @@
 # DynamoDB Not ORM
 
+[![PyPI version](https://badge.fury.io/py/dynamodb-not-orm.svg)](https://badge.fury.io/py/dynamodb-not-orm)
+[![Python](https://img.shields.io/pypi/pyversions/dynamodb-not-orm.svg)](https://pypi.org/project/dynamodb-not-orm/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/timaakulich/dynamodb-not-orm/actions/workflows/tests.yml/badge.svg)](https://github.com/timaakulich/dynamodb-not-orm/actions/workflows/tests.yml)
+
 A lightweight DynamoDB ORM alternative that provides a simple way to work with DynamoDB without the complexity of a full ORM.
 
 ## Features
