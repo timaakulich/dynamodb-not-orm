@@ -34,17 +34,25 @@ class BaseCRUD[T: DataModel]:
         self,
         region_name: str,
         environment: str,
+        project: str,
         auto_now: bool = False,
         auto_now_add: bool = False,
+        endpoint_url: str | None = None,
+        aws_access_key_id: str | None = None,
+        aws_secret_access_key: str | None = None,
     ):
         self.table_name = self.model_cls.__table__
         self.region_name = region_name
         self.environment = environment
+        self.project = project
         self.auto_now = auto_now
         self.auto_now_add = auto_now_add
+        self.endpoint_url = endpoint_url
+        self.aws_access_key_id = aws_access_key_id
+        self.aws_secret_access_key = aws_secret_access_key
 
     def full_table_name(self, table_or_index: str) -> str:
-        return f"{self.environment}-{table_or_index}"
+        return f"{self.environment}-{self.project}-{table_or_index}"
 
     async def get(
         self,
@@ -54,7 +62,8 @@ class BaseCRUD[T: DataModel]:
         raise_exc: bool = False,
     ) -> T | None:
         async with dynamodb(
-            self.full_table_name(self.table_name), self.region_name
+            self.full_table_name(self.table_name), self.region_name,
+            self.endpoint_url, self.aws_access_key_id, self.aws_secret_access_key,
         ) as table:
             with suppress(ItemNotFound):
                 item = await table.get_item(
@@ -79,7 +88,8 @@ class BaseCRUD[T: DataModel]:
         consistent_read: bool = False,
     ) -> list[T]:
         async with dynamodb(
-            self.full_table_name(self.table_name), self.region_name
+            self.full_table_name(self.table_name), self.region_name,
+            self.endpoint_url, self.aws_access_key_id, self.aws_secret_access_key,
         ) as table:
             result = []
             page = await table.query_single_page(
@@ -110,7 +120,8 @@ class BaseCRUD[T: DataModel]:
         consistent_read: bool = False,
     ) -> list[T]:
         async with dynamodb(
-            self.full_table_name(self.table_name), self.region_name
+            self.full_table_name(self.table_name), self.region_name,
+            self.endpoint_url, self.aws_access_key_id, self.aws_secret_access_key,
         ) as table:
             result = []
             async for item in table.query(
@@ -140,7 +151,8 @@ class BaseCRUD[T: DataModel]:
             consistent_read: bool = False,
     ) -> tuple[dict | None, builtins.list[T]]:
         async with dynamodb(
-            self.full_table_name(self.table_name), self.region_name
+            self.full_table_name(self.table_name), self.region_name,
+            self.endpoint_url, self.aws_access_key_id, self.aws_secret_access_key,
         ) as table:
             result = await table.query_single_page(
                 key_condition_expression,
@@ -183,7 +195,8 @@ class BaseCRUD[T: DataModel]:
         condition: Condition | None = None,
     ) -> T | None:
         async with dynamodb(
-            self.full_table_name(self.table_name), self.region_name
+            self.full_table_name(self.table_name), self.region_name,
+            self.endpoint_url, self.aws_access_key_id, self.aws_secret_access_key,
         ) as table:
             now = int(time.time())
             if self.auto_now:
@@ -207,7 +220,8 @@ class BaseCRUD[T: DataModel]:
         condition: Condition | None = None,
     ) -> T | None:
         async with dynamodb(
-            self.full_table_name(self.table_name), self.region_name
+            self.full_table_name(self.table_name), self.region_name,
+            self.endpoint_url, self.aws_access_key_id, self.aws_secret_access_key,
         ) as table:
             with suppress(ItemNotFound):
                 item = await table.delete_item(
@@ -227,7 +241,8 @@ class BaseCRUD[T: DataModel]:
         consistent_read: bool = False,
     ) -> builtins.list[T]:
         async with dynamodb(
-            self.full_table_name(self.table_name), self.region_name
+            self.full_table_name(self.table_name), self.region_name,
+            self.endpoint_url, self.aws_access_key_id, self.aws_secret_access_key,
         ) as table:
             result = []
             async for item in table.scan(
@@ -247,7 +262,10 @@ class BaseCRUD[T: DataModel]:
             projection: ProjectionExpression | None = None,
             consistent_read: bool = False,
     ) -> builtins.list[T]:
-        async with dynamodb_client(self.region_name) as client:
+        async with dynamodb_client(
+            self.region_name, self.endpoint_url,
+            self.aws_access_key_id, self.aws_secret_access_key,
+        ) as client:
             table_name = self.full_table_name(self.table_name)
             result = await client.batch_get(request={
                 table_name: BatchGetRequest(

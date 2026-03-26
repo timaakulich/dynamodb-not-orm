@@ -7,7 +7,7 @@ def test_crud():
 
     class UserCRUD(BaseCRUD[TestDataModel]): ...
 
-    user_crud = UserCRUD("eu-west-1", "dev")
+    user_crud = UserCRUD("eu-west-1", "dev", "project")
     assert user_crud.model_cls is TestDataModel
     assert user_crud.table_name == "test"
-    assert user_crud.full_table_name("test") == "dev-test"
+    assert user_crud.full_table_name("test") == "dev-project-test"
